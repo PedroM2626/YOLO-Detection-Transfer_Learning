@@ -1,0 +1,37 @@
+# Ignorar arquivos do dataset
+vehicle-dataset-for-yolo-DatasetNinja.tar
+meta.json
+
+# Ignorar diretório de backup dos pesos do Darknet
+darknet/backup/
+
+# Ignorar arquivos de anotação gerados
+train.txt
+val.txt
+train/
+valid/
+
+# Ignorar arquivos Python gerados
+*.pyc
+__pycache__/
+
+# Ignorar arquivos de ambiente virtual
+virtualenv/
+virtual-env/
+virtualenv-2.7/
+virtualenv-2.x/
+virtualenv-3.x/
+venv/
+.venv/
+
+# Ignorar arquivos de IDEs
+.vscode/
+.idea/
+
+# Ignorar logs
+*.log
+
+# Ignorar arquivos temporários
+*~
+*.bak
+*.tmp
