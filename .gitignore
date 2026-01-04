@@ -35,3 +35,8 @@ venv/
 *~
 *.bak
 *.tmp
+ 
+# Ambiente e notebooks
+.env
+.env.*
+.ipynb_checkpoints/

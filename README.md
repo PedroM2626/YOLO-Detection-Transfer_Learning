@@ -135,6 +135,56 @@ No diretório `darknet`, execute o seguinte comando:
 -   Substitua `./darknet` pelo caminho correto para o executável do Darknet se estiver em Windows ou se o executável não estiver no PATH.
 -   Se você não usar pesos pré-treinados, remova `darknet53.conv.74` do comando para treinar do zero.
 
+## Inferência (Notebook e Tempo Real)
+
+### Instalação
+
+```bash
+python -m venv .venv
+.venv\Scripts\activate
+pip install -r requirements.txt
+```
+
+Configure o arquivo `.env` com os caminhos do seu modelo treinado (ex.: yolov3-tiny custom). Um exemplo está em `.env.example`:
+
+```
+YOLO_CFG_PATH=darknet/cfg/yolov3-tiny-obj.cfg
+YOLO_WEIGHTS_PATH=darknet/backup/yolov3-tiny-obj_final.weights
+YOLO_NAMES_PATH=darknet/cfg/obj.names
+YOLO_CONF_THRESHOLD=0.5
+YOLO_NMS_THRESHOLD=0.4
+YOLO_USE_GPU=false
+```
+
+Se você ainda não possui os arquivos `.cfg`, `.weights` e `.names`, gere-os conforme a seção de treinamento acima ou utilize um modelo pré-treinado compatível com Darknet (YOLOv3/YOLOv3-tiny).
+
+### Notebook Jupyter (anexar imagens)
+
+1. Ative o ambiente e inicie o Jupyter:
+   ```bash
+   .venv\Scripts\activate
+   jupyter notebook
+   ```
+2. Abra `notebooks/yolo_notebook.ipynb`.
+3. Anexe uma ou várias imagens pelo widget e clique em “Detectar”. As classes e confidências serão exibidas e as imagens terão as caixas desenhadas.
+
+### Script de detecção em tempo real
+
+Execute:
+```bash
+.venv\Scripts\activate
+python yolo_realtime.py
+```
+
+Opções úteis:
+```bash
+python yolo_realtime.py --camera 0 --width 1280 --height 720 --input-size 416x416 --gpu
+```
+
+Para sobrepor os caminhos sem `.env`:
+```bash
+python yolo_realtime.py --cfg darknet/cfg/yolov3-tiny-obj.cfg --weights darknet/backup/yolov3-tiny-obj_final.weights --names darknet/cfg/obj.names
+```
 
 ## Tratamento de Erros e Testes
 
@@ -144,6 +194,13 @@ Este projeto foca na configuração inicial para transfer learning. Para um ambi
 -   **Testes Unitários**: Testar funções individuais, como `convert_bbox_to_yolo` no `prepare_dataset.py`.
 -   **Testes de Integração**: Verificar se o pipeline completo de preparação do dataset funciona corretamente, desde a leitura do JSON até a geração dos arquivos `.txt` e `train.txt`/`val.txt`.
 -   **Testes de Aceitação**: Validar se o modelo treinado é capaz de detectar objetos nas classes definidas com uma precisão aceitável em um conjunto de dados de teste independente.
+
+### Executar testes
+
+```bash
+.venv\Scripts\activate
+pytest -q
+```
 
 ## Próximos Passos
 
