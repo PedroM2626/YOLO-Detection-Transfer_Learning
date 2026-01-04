@@ -1,6 +1,11 @@
 import os
 import json
+import argparse
+import urllib.request
+import tarfile
+from pathlib import Path
 from sklearn.model_selection import train_test_split
+import yaml
 
 # Define as classes na ordem correta
 CLASSES = ['car', 'motorbike', 'threewheel', 'van', 'bus', 'truck']
@@ -63,28 +68,55 @@ def process_annotations(image_dir, ann_dir, image_paths_list):
                 for line in yolo_annotations:
                     f.write(line + '\n')
 
+def download_dataset_if_needed(base_dir: Path, force_download: bool = False):
+    tar_name = 'vehicle-dataset-for-yolo-DatasetNinja.tar'
+    tar_path = Path(tar_name)
+    if force_download or not tar_path.exists():
+        url = ("https://assets.supervisely.com/remote/"
+               "eyJsaW5rIjogInMzOi8vc3VwZXJ2aXNlbHktZGF0YXNldHMvMjc4OF9WZWhpY2xlIERhdGFzZXQgZm9yIFlPTE8vdmVoaWNsZS1kYXRhc2V0LWZvci15b2xvLURhdGFzZXROaW5qYS50YXIiLCAic2lnIjogInRtZEFZaXVzQXZPQkNySVc1L1dXZjVicVY0aS9iUVNnOWJaZlFQMlJzWU09In0=?response-content-disposition=attachment%3B%20filename%3D%22vehicle-dataset-for-yolo-DatasetNinja.tar%22")
+        print(f"Baixando dataset de {url} ...")
+        urllib.request.urlretrieve(url, str(tar_path))
+    # Extrai se necessário
+    train_dir = base_dir / 'train'
+    valid_dir = base_dir / 'valid'
+    if not train_dir.exists() or not valid_dir.exists():
+        print(f"Extraindo {tar_path} para {base_dir} ...")
+        with tarfile.open(str(tar_path), "r") as tar:
+            tar.extractall(path=str(base_dir))
+    else:
+        print("Pastas train/ e valid/ já existem, pulando extração.")
+
+
 def main():
-    base_dir = 'c:/Users/pedro/Downloads/YOLO-detection'
-    train_img_dir = os.path.join(base_dir, 'train', 'img')
-    train_ann_dir = os.path.join(base_dir, 'train', 'ann')
-    valid_img_dir = os.path.join(base_dir, 'valid', 'img')
-    valid_ann_dir = os.path.join(base_dir, 'valid', 'ann')
+    project_root = Path(__file__).resolve().parent
+    base_dir = project_root  # caminhos relativos ao projeto
+    train_img_dir = base_dir / 'train' / 'img'
+    train_ann_dir = base_dir / 'train' / 'ann'
+    valid_img_dir = base_dir / 'valid' / 'img'
+    valid_ann_dir = base_dir / 'valid' / 'ann'
+
+    parser = argparse.ArgumentParser(description="Preparar dataset em formato YOLO (caminhos relativos)")
+    parser.add_argument('--download', action='store_true', help='Baixar e extrair dataset pelo link oficial')
+    args = parser.parse_args()
+
+    if args.download:
+        download_dataset_if_needed(base_dir)
 
     all_image_paths = []
 
     print("Processando anotações de treinamento...")
-    process_annotations(train_img_dir, train_ann_dir, all_image_paths)
+    process_annotations(str(train_img_dir), str(train_ann_dir), all_image_paths)
     print("Processando anotações de validação...")
-    process_annotations(valid_img_dir, valid_ann_dir, all_image_paths)
+    process_annotations(str(valid_img_dir), str(valid_ann_dir), all_image_paths)
 
     # Dividir em treino e validação (80/20)
     train_paths, val_paths = train_test_split(all_image_paths, test_size=0.2, random_state=42)
 
-    with open(os.path.join(base_dir, 'train.txt'), 'w') as f:
+    with open(str(base_dir / 'train.txt'), 'w') as f:
         for path in train_paths:
             f.write(path + '\n')
 
-    with open(os.path.join(base_dir, 'val.txt'), 'w') as f:
+    with open(str(base_dir / 'val.txt'), 'w') as f:
         for path in val_paths:
             f.write(path + '\n')
 
@@ -92,6 +124,17 @@ def main():
     print(f"Total de imagens processadas: {len(all_image_paths)}")
     print(f"Imagens de treinamento: {len(train_paths)}")
     print(f"Imagens de validação: {len(val_paths)}")
+    # Gera data.yaml para Ultralytics (opcional)
+    data_yaml = {
+        "path": str(base_dir),
+        "train": str(train_img_dir),
+        "val": str(valid_img_dir),
+        "names": CLASSES,
+        "nc": len(CLASSES),
+    }
+    with open(str(base_dir / "data.yaml"), "w", encoding="utf-8") as f:
+        yaml.safe_dump(data_yaml, f, sort_keys=False, allow_unicode=True)
+    print("Arquivo data.yaml gerado para uso com Ultralytics.")
 
 if __name__ == '__main__':
     main()

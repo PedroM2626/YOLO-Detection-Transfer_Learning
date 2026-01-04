@@ -124,7 +124,11 @@ def build_detector_from_env(
     cfg_path = os.getenv("YOLO_CFG_PATH", "").strip()
     weights_path = os.getenv("YOLO_WEIGHTS_PATH", "").strip()
     names_path = os.getenv("YOLO_NAMES_PATH", "").strip()
-    if not cfg_path or not weights_path or not names_path:
+    # Se variáveis não existirem OU arquivos não existirem, usar fallback auto-download
+    if (not cfg_path or not weights_path or not names_path
+        or not os.path.isfile(cfg_path)
+        or not os.path.isfile(weights_path)
+        or not os.path.isfile(names_path)):
         models_dir = pathlib.Path("models")
         models_dir.mkdir(exist_ok=True)
         cfg_path = str(models_dir / "yolov3-tiny.cfg")

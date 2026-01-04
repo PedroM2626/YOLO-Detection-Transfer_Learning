@@ -95,10 +95,10 @@ Os seguintes arquivos de configuração foram criados/modificados no diretório 
 
     ```
     classes=6
-    train = c:/Users/pedro/Downloads/YOLO-detection/train.txt
-    valid = c:/Users/pedro/Downloads/YOLO-detection/val.txt
-    names = c:/Users/pedro/Downloads/YOLO-detection/darknet/cfg/obj.names
-    backup = c:/Users/pedro/Downloads/YOLO-detection/darknet/backup
+    train = ./train.txt
+    valid = ./val.txt
+    names = ./darknet/cfg/obj.names
+    backup = ./darknet/backup
     ```
 
 -   **`yolov3-tiny-obj.cfg`**: Uma cópia modificada do `yolov3-tiny.cfg` com as seguintes alterações:
@@ -193,23 +193,29 @@ python yolo_realtime.py --cfg darknet/cfg/yolov3-tiny-obj.cfg --weights darknet/
 
 Se nenhuma variável estiver definida, o projeto baixa automaticamente `yolov3-tiny` para testes rápidos.
 
-## Baixar dataset automaticamente e preparar
+## Baixar dataset e preparar (caminhos relativos)
 
 ```bash
 .venv\Scripts\activate
-python dataset_download_and_prepare.py
+python prepare_dataset.py --download
 ```
 
-Isso baixa o dataset pelo link do README, extrai e executa o conversor existente [prepare_dataset.py](file:///c:/Users/pedro/Downloads/YOLO-Detection-Transfer_Learning/prepare_dataset.py#L1-L97) para gerar `train.txt` e `val.txt`.
+Isso baixa o dataset pelo link do README, extrai dentro do projeto e gera:
+- Anotações YOLO (.txt) em `train/img` e `valid/img`
+- `train.txt` e `val.txt` com caminhos absolutos das imagens
+- `data.yaml` para uso com Ultralytics
 
 ## Treinar com Ultralytics (sem Darknet)
 
+Após gerar `data.yaml` com `prepare_dataset.py`, você pode treinar via CLI:
 ```bash
 .venv\Scripts\activate
-python train_ultralytics.py
+yolo train data=data.yaml model=yolov8n.pt imgsz=640 epochs=50 batch=16
 ```
-
-O script gera `data.yaml` apontando para `train/img` e `valid/img` com as anotações YOLO e treina um `yolov8n`. Após o treino, exporta para ONNX (padrão). Você pode usar o peso produzido com Ultralytics para inferência com Ultralytics, ou continuar usando OpenCV DNN com modelos Darknet.
+Ao final, os pesos ficam em `runs/detect/...`. Para inferência com Ultralytics:
+```bash
+yolo predict model=runs/detect/exp/weights/best.pt source=path/to/image_or_folder
+```
 
 ## Tratamento de Erros e Testes
 
