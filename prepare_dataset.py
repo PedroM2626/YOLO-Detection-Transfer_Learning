@@ -11,6 +11,7 @@ import yaml
 CLASSES = ['car', 'motorbike', 'threewheel', 'van', 'bus', 'truck']
 
 def convert_bbox_to_yolo(size, box):
+    # Converte (xmin, xmax, ymin, ymax) para formato YOLO (x, y, w, h) normalizado
     dw = 1. / size[0]
     dh = 1. / size[1]
     x = (box[0] + box[1]) / 2.0
@@ -24,6 +25,7 @@ def convert_bbox_to_yolo(size, box):
     return (x, y, w, h)
 
 def process_annotations(image_dir, ann_dir, image_paths_list):
+    # Percorre anotações .json, gera .txt no formato YOLO e coleta caminhos de imagem
     for ann_file in os.listdir(ann_dir):
         if ann_file.endswith('.json'):
             json_path = os.path.join(ann_dir, ann_file)
@@ -69,6 +71,7 @@ def process_annotations(image_dir, ann_dir, image_paths_list):
                     f.write(line + '\n')
 
 def download_dataset_if_needed(base_dir: Path, force_download: bool = False):
+    # Baixa o dataset pelo link do README e extrai para o projeto (opcional)
     tar_name = 'vehicle-dataset-for-yolo-DatasetNinja.tar'
     tar_path = Path(tar_name)
     if force_download or not tar_path.exists():
@@ -88,6 +91,7 @@ def download_dataset_if_needed(base_dir: Path, force_download: bool = False):
 
 
 def main():
+    # Define caminhos relativos ao projeto, prepara dataset e gera arquivos de índice
     project_root = Path(__file__).resolve().parent
     base_dir = project_root  # caminhos relativos ao projeto
     train_img_dir = base_dir / 'train' / 'img'

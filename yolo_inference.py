@@ -12,6 +12,7 @@ except Exception:
 
 
 def _load_classes(names_path: str) -> List[str]:
+    # Lê arquivo .names e retorna lista de classes
     if not os.path.isfile(names_path):
         raise FileNotFoundError(f"Arquivo de classes não encontrado: {names_path}")
     with open(names_path, "r", encoding="utf-8") as f:
@@ -22,12 +23,14 @@ def _load_classes(names_path: str) -> List[str]:
 
 
 def _get_output_layer_names(net: cv2.dnn_Net) -> List[str]:
+    # Extrai nomes das camadas de saída (YOLO) para forward
     layer_names = net.getLayerNames()
     out_layers = net.getUnconnectedOutLayers()
     return [layer_names[i - 1] for i in out_layers.flatten()]
 
 
 class YoloDetector:
+    # Wrapper para inferência com OpenCV DNN + Darknet cfg/weights
     def __init__(
         self,
         cfg_path: str,
@@ -58,6 +61,7 @@ class YoloDetector:
         image_bgr: np.ndarray,
         input_size: Tuple[int, int] = (416, 416),
     ) -> List[Dict]:
+        # Executa inferência e retorna lista de detecções com bbox, classe e confiança
         if image_bgr is None or image_bgr.size == 0:
             raise ValueError("Imagem inválida para detecção")
         h, w = image_bgr.shape[:2]
@@ -102,6 +106,7 @@ class YoloDetector:
         return detections
 
     def draw(self, image_bgr: np.ndarray, detections: List[Dict]) -> np.ndarray:
+        # Desenha retângulos e labels no frame
         out = image_bgr.copy()
         for det in detections:
             x, y, w, h = det["box"]
@@ -119,6 +124,7 @@ def build_detector_from_env(
     nms_threshold: Optional[float] = None,
     use_gpu: Optional[bool] = None,
 ) -> YoloDetector:
+    # Inicializa via .env; se faltarem caminhos/arquivos, baixa YOLOv3-tiny automaticamente (models/)
     if load_dotenv is not None:
         load_dotenv()
     cfg_path = os.getenv("YOLO_CFG_PATH", "").strip()

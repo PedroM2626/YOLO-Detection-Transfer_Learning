@@ -4,9 +4,11 @@ import argparse
 import cv2
 from yolo_inference import build_detector_from_env, YoloDetector
 
+# Lista de classes do dataset custom utilizado no projeto
 CLASSES = ['car', 'motorbike', 'threewheel', 'van', 'bus', 'truck']
 
 def parse_args() -> argparse.Namespace:
+    # Parser de argumentos CLI para configurar câmera, resolução, thresholds e caminhos
     parser = argparse.ArgumentParser(description="Detecção em tempo real com YOLO (OpenCV DNN)")
     parser.add_argument("--camera", type=int, default=0, help="Índice da câmera (default: 0)")
     parser.add_argument("--width", type=int, default=1280, help="Largura do frame")
@@ -22,6 +24,7 @@ def parse_args() -> argparse.Namespace:
 
 
 def make_detector(args: argparse.Namespace) -> YoloDetector:
+    # Inicializa o detector: usa caminhos explícitos se fornecidos, senão .env/fallback
     if args.cfg and args.weights and args.names:
         return YoloDetector(
             cfg_path=args.cfg,
@@ -35,6 +38,7 @@ def make_detector(args: argparse.Namespace) -> YoloDetector:
 
 
 def main() -> int:
+    # Loop principal de captura da câmera, inferência e exibição com overlay
     args = parse_args()
     try:
         detector = make_detector(args)
@@ -68,10 +72,12 @@ def main() -> int:
         except Exception as e:
             print(f"Erro na detecção: {e}")
             frame_out = frame
+        # Desenha instrução de saída na tela
         overlay1 = "Pressione 'q' para sair"
         (tw1, th1), _ = cv2.getTextSize(overlay1, cv2.FONT_HERSHEY_SIMPLEX, 0.8, 2)
         cv2.rectangle(frame_out, (8, 8), (8 + tw1 + 6, 8 + th1 + 10), (0, 0, 0), -1)
         cv2.putText(frame_out, overlay1, (12, 8 + th1 + 2), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255), 2)
+        # Coleta classes detectadas do dataset custom e exibe overlay se houver
         hits = sorted({d['class_name'] for d in detections if d.get('class_name') in CLASSES})
         if hits:
             overlay2 = "Detectadas: " + ", ".join(hits)
