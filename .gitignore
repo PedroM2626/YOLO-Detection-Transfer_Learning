@@ -35,8 +35,12 @@ venv/
 *~
 *.bak
 *.tmp
- 
+
 # Ambiente e notebooks
 .env
 .env.*
 .ipynb_checkpoints/
+models/
+
+# ignorar dataset
+vehicle-dataset-for-yolo-DatasetNinja.tar

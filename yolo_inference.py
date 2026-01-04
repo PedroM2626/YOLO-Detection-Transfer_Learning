@@ -2,6 +2,8 @@ import os
 import cv2
 import numpy as np
 from typing import List, Tuple, Dict, Optional
+import urllib.request
+import pathlib
 
 try:
     from dotenv import load_dotenv
@@ -123,7 +125,20 @@ def build_detector_from_env(
     weights_path = os.getenv("YOLO_WEIGHTS_PATH", "").strip()
     names_path = os.getenv("YOLO_NAMES_PATH", "").strip()
     if not cfg_path or not weights_path or not names_path:
-        raise EnvironmentError("Variáveis de ambiente YOLO_CFG_PATH, YOLO_WEIGHTS_PATH e YOLO_NAMES_PATH são obrigatórias")
+        models_dir = pathlib.Path("models")
+        models_dir.mkdir(exist_ok=True)
+        cfg_path = str(models_dir / "yolov3-tiny.cfg")
+        weights_path = str(models_dir / "yolov3-tiny.weights")
+        names_path = str(models_dir / "coco.names")
+        if not os.path.isfile(cfg_path):
+            url_cfg = "https://raw.githubusercontent.com/pjreddie/darknet/master/cfg/yolov3-tiny.cfg"
+            urllib.request.urlretrieve(url_cfg, cfg_path)
+        if not os.path.isfile(weights_path):
+            url_weights = "https://pjreddie.com/media/files/yolov3-tiny.weights"
+            urllib.request.urlretrieve(url_weights, weights_path)
+        if not os.path.isfile(names_path):
+            url_names = "https://raw.githubusercontent.com/pjreddie/darknet/master/data/coco.names"
+            urllib.request.urlretrieve(url_names, names_path)
     ct = float(os.getenv("YOLO_CONF_THRESHOLD", conf_threshold if conf_threshold is not None else 0.5))
     nt = float(os.getenv("YOLO_NMS_THRESHOLD", nms_threshold if nms_threshold is not None else 0.4))
     gpu_flag = os.getenv("YOLO_USE_GPU", "false").lower() in {"1", "true", "yes"} if use_gpu is None else use_gpu

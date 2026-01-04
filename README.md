@@ -135,6 +135,11 @@ No diretório `darknet`, execute o seguinte comando:
 -   Substitua `./darknet` pelo caminho correto para o executável do Darknet se estiver em Windows ou se o executável não estiver no PATH.
 -   Se você não usar pesos pré-treinados, remova `darknet53.conv.74` do comando para treinar do zero.
 
+## Uso sem repositório Darknet (pip e fallback automático)
+
+- Para evitar dependências do repositório Darknet, o módulo de inferência usa OpenCV DNN e baixa automaticamente o modelo YOLOv3-tiny (cfg/weights e nomes COCO) caso as variáveis de ambiente não estejam definidas.
+- Os arquivos são armazenados em `models/`. Você pode substituir por seu modelo treinado via `.env`.
+
 ## Inferência (Notebook e Tempo Real)
 
 ### Instalação
@@ -185,6 +190,26 @@ Para sobrepor os caminhos sem `.env`:
 ```bash
 python yolo_realtime.py --cfg darknet/cfg/yolov3-tiny-obj.cfg --weights darknet/backup/yolov3-tiny-obj_final.weights --names darknet/cfg/obj.names
 ```
+
+Se nenhuma variável estiver definida, o projeto baixa automaticamente `yolov3-tiny` para testes rápidos.
+
+## Baixar dataset automaticamente e preparar
+
+```bash
+.venv\Scripts\activate
+python dataset_download_and_prepare.py
+```
+
+Isso baixa o dataset pelo link do README, extrai e executa o conversor existente [prepare_dataset.py](file:///c:/Users/pedro/Downloads/YOLO-Detection-Transfer_Learning/prepare_dataset.py#L1-L97) para gerar `train.txt` e `val.txt`.
+
+## Treinar com Ultralytics (sem Darknet)
+
+```bash
+.venv\Scripts\activate
+python train_ultralytics.py
+```
+
+O script gera `data.yaml` apontando para `train/img` e `valid/img` com as anotações YOLO e treina um `yolov8n`. Após o treino, exporta para ONNX (padrão). Você pode usar o peso produzido com Ultralytics para inferência com Ultralytics, ou continuar usando OpenCV DNN com modelos Darknet.
 
 ## Tratamento de Erros e Testes
 
