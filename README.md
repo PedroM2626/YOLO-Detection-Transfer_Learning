@@ -1,240 +1,78 @@
 # YOLO Vehicle Detection - Transfer Learning
 
-Este projeto demonstra como realizar transfer learning para detecção de veículos usando a estrutura Darknet (YOLOv3-tiny) e um dataset personalizado.
+Este projeto demonstra a detecção de veículos utilizando YOLOv3-tiny com OpenCV DNN. Ele inclui suporte para inferência em imagens e webcam em tempo real, além de uma interface interativa moderna com Streamlit.
 
-## Dataset
+## 🚀 Funcionalidades
 
-O dataset utilizado consiste em 3000 imagens com 3830 objetos rotulados, pertencentes a 6 classes diferentes:
+- **Inferência Flexível**: Suporta carregamento de modelos customizados via `.env` ou download automático do YOLOv3-tiny (COCO) como fallback.
+- **Interface Streamlit**: Upload de imagens e detecção via webcam em uma interface web amigável.
+- **Detecção em Tempo Real**: Script otimizado para webcam com overlays informativos.
+- **Notebook Jupyter**: Ambiente para testes rápidos e visualização.
+- **Preparação de Dataset**: Conversão de anotações do formato JSON para o padrão YOLO.
 
-- `car`
-- `motorbike`
-- `threewheel`
-- `van`
-- `bus`
-- `truck`
+## 🛠️ Instalação
 
-O dataset original pode ser encontrado em: [Vehicle Dataset for YOLO](https://assets.supervisely.com/remote/eyJsaW5rIjogInMzOi8vc3VwZXJ2aXNlbHktZGF0YXNldHMvMjc4OF9WZWhpY2xlIERhdGFzZXQgZm9yIFlPTE8vdmVoaWNsZS1kYXRhc2V0LWZvci15b2xvLURhdGFzZXROaW5qYS50YXIiLCAic2lnIjogInRtZEFZaXVzQXZPQkNySVc1L1dXZjVicVY0aS9iUVNnOWJaZlFQMlJzWU09In0=?response-content-disposition=attachment%3B%20filename%3D%22vehicle-dataset-for-yolo-DatasetNinja.tar%22)
-
-## Estrutura do Projeto
-
-```
-.gitignore
-README.md
-prepare_dataset.py
-vehicle-dataset-for-yolo-DatasetNinja.tar
-darknet/
-├── backup/ (diretório para pesos treinados)
-├── cfg/
-│   ├── obj.data
-│   ├── obj.names
-│   └── yolov3-tiny-obj.cfg
-├── ... (outros arquivos Darknet)
-train/
-├── ann/ (anotações JSON originais)
-└── img/ (imagens de treinamento e anotações YOLO geradas)
-val.txt
-valid/
-├── ann/ (anotações JSON originais)
-└── img/ (imagens de validação e anotações YOLO geradas)
-```
-
-## Configuração e Preparação
-
-### 1. Clonar o Darknet
-
-Certifique-se de ter o repositório Darknet em seu diretório de trabalho. Se você já tem, pule esta etapa.
-
-```bash
-git clone https://github.com/PedroM2626/YOLO-detection.git
-```
-
-### 2. Extrair o Dataset
-
-O dataset `vehicle-dataset-for-yolo-DatasetNinja.tar` deve ser extraído no diretório raiz do projeto (`YOLO-detection`).
-
-```bash
-tar -xf vehicle-dataset-for-yolo-DatasetNinja.tar
-```
-
-### 3. Instalar Dependências Python
-
-O script de preparação do dataset requer `scikit-learn`.
-
-```bash
-pip install scikit-learn
-```
-
-### 4. Preparar o Dataset para o Darknet
-
-Execute o script `prepare_dataset.py` para converter as anotações JSON para o formato YOLO e gerar os arquivos `train.txt` e `val.txt`.
-
-```bash
-python prepare_dataset.py
-```
-
-Este script irá:
-- Criar arquivos `.txt` com anotações no formato YOLO para cada imagem nas pastas `train/img` e `valid/img`.
-- Gerar `train.txt` e `val.txt` na raiz do projeto, listando os caminhos absolutos para as imagens de treinamento e validação, respectivamente.
-
-### 5. Configurar o Darknet
-
-Os seguintes arquivos de configuração foram criados/modificados no diretório `darknet/cfg`:
-
--   **`obj.names`**: Contém os nomes das 6 classes (car, motorbike, threewheel, van, bus, truck).
-
-    ```
-    car
-    motorbike
-    threewheel
-    van
-    bus
-    truck
+1.  **Clone o repositório**:
+    ```bash
+    git clone <url-do-repositorio>
+    cd YOLO-Detection-Transfer_Learning
     ```
 
--   **`obj.data`**: Configurações para o Darknet, apontando para os arquivos de treino, validação, nomes das classes e diretório de backup.
-
-    ```
-    classes=6
-    train = ./train.txt
-    valid = ./val.txt
-    names = ./darknet/cfg/obj.names
-    backup = ./darknet/backup
+2.  **Instale as dependências**:
+    ```bash
+    pip install -r requirements.txt
     ```
 
--   **`yolov3-tiny-obj.cfg`**: Uma cópia modificada do `yolov3-tiny.cfg` com as seguintes alterações:
-    -   `classes=6` nas seções `[yolo]`.
-    -   `filters=33` nas camadas `[convolutional]` que precedem as seções `[yolo]` (calculado como `(classes + 5) * 3`).
+## ⚙️ Configuração
 
-### 6. Compilar o Darknet
+Crie um arquivo `.env` na raiz do projeto (ou use o `.env.example`) para configurar os caminhos do seu modelo treinado:
 
-Navegue até o diretório `darknet` e compile-o. Certifique-se de ter o CUDA e o OpenCV instalados se for usar GPU.
-
-```bash
-cd darknet
-# Para Linux/WSL:
-make
-# Para Windows, pode ser necessário usar o Visual Studio ou uma versão pré-compilada.
-```
-
-## Treinamento
-
-### 1. Baixar Pesos Pré-treinados (Opcional, mas Recomendado)
-
-Para iniciar o treinamento com transfer learning, baixe os pesos pré-treinados do `darknet53.conv.74` e coloque-os no diretório `darknet`.
-
-[darknet53.conv.74](https://pjreddie.com/media/files/darknet53.conv.74)
-
-### 2. Iniciar o Treinamento
-
-No diretório `darknet`, execute o seguinte comando:
-
-```bash
-./darknet detector train cfg/obj.data cfg/yolov3-tiny-obj.cfg darknet53.conv.74
-```
-
--   Substitua `./darknet` pelo caminho correto para o executável do Darknet se estiver em Windows ou se o executável não estiver no PATH.
--   Se você não usar pesos pré-treinados, remova `darknet53.conv.74` do comando para treinar do zero.
-
-## Uso sem repositório Darknet (pip e fallback automático)
-
-- Para evitar dependências do repositório Darknet, o módulo de inferência usa OpenCV DNN e baixa automaticamente o modelo YOLOv3-tiny (cfg/weights e nomes COCO) caso as variáveis de ambiente não estejam definidas.
-- Os arquivos são armazenados em `models/`. Você pode substituir por seu modelo treinado via `.env`.
-
-## Inferência (Notebook e Tempo Real)
-
-### Instalação
-
-```bash
-python -m venv .venv
-.venv\Scripts\activate
-pip install -r requirements.txt
-```
-
-Configure o arquivo `.env` com os caminhos do seu modelo treinado (ex.: yolov3-tiny custom). Um exemplo está em `.env.example`:
-
-```
-YOLO_CFG_PATH=darknet/cfg/yolov3-tiny-obj.cfg
-YOLO_WEIGHTS_PATH=darknet/backup/yolov3-tiny-obj_final.weights
-YOLO_NAMES_PATH=darknet/cfg/obj.names
+```env
+YOLO_CFG_PATH=models/yolov3-tiny.cfg
+YOLO_WEIGHTS_PATH=models/yolov3-tiny.weights
+YOLO_NAMES_PATH=models/coco.names
 YOLO_CONF_THRESHOLD=0.5
 YOLO_NMS_THRESHOLD=0.4
 YOLO_USE_GPU=false
 ```
 
-Se você ainda não possui os arquivos `.cfg`, `.weights` e `.names`, gere-os conforme a seção de treinamento acima ou utilize um modelo pré-treinado compatível com Darknet (YOLOv3/YOLOv3-tiny).
+*Nota: Se os arquivos não forem encontrados nos caminhos acima, o sistema baixará automaticamente o modelo YOLOv3-tiny padrão para a pasta `models/`.*
 
-### Notebook Jupyter (anexar imagens)
+## 🖥️ Como Usar
 
-1. Ative o ambiente e inicie o Jupyter:
-   ```bash
-   .venv\Scripts\activate
-   jupyter notebook
-   ```
-2. Abra `notebooks/yolo_notebook.ipynb`.
-3. Anexe uma ou várias imagens pelo widget e clique em “Detectar”. As classes e confidências serão exibidas e as imagens terão as caixas desenhadas.
-
-### Script de detecção em tempo real
-
-Execute:
+### 1. Interface Streamlit (Recomendado)
+A interface web permite testar imagens e webcam facilmente:
 ```bash
-.venv\Scripts\activate
+streamlit run app_streamlit.py
+```
+
+### 2. Detecção via Webcam (CLI)
+Para uma execução direta via terminal:
+```bash
 python yolo_realtime.py
 ```
 
-Opções úteis:
+### 3. Inferência em Imagem (CLI)
 ```bash
-python yolo_realtime.py --camera 0 --width 1280 --height 720 --input-size 416x416 --gpu
+python yolo_inference.py --image caminho/para/imagem.jpg
 ```
 
-Para sobrepor os caminhos sem `.env`:
+### 4. Preparação do Dataset
+Se você tiver o dataset original em JSON:
 ```bash
-python yolo_realtime.py --cfg darknet/cfg/yolov3-tiny-obj.cfg --weights darknet/backup/yolov3-tiny-obj_final.weights --names darknet/cfg/obj.names
+python prepare_dataset.py
 ```
 
-Se nenhuma variável estiver definida, o projeto baixa automaticamente `yolov3-tiny` para testes rápidos.
+## 📁 Estrutura do Projeto
 
-## Baixar dataset e preparar (caminhos relativos)
+- `app_streamlit.py`: Interface web interativa.
+- `yolo_inference.py`: Core da lógica de detecção e gerenciamento de modelos.
+- `yolo_realtime.py`: Script para execução em tempo real via terminal.
+- `prepare_dataset.py`: Utilitário para conversão de anotações.
+- `notebooks/yolo_notebook.ipynb`: Demonstração em ambiente Jupyter.
+- `models/`: Pasta onde os pesos e configurações são armazenados/baixados.
 
-```bash
-.venv\Scripts\activate
-python prepare_dataset.py --download
-```
-
-Isso baixa o dataset pelo link do README, extrai dentro do projeto e gera:
-- Anotações YOLO (.txt) em `train/img` e `valid/img`
-- `train.txt` e `val.txt` com caminhos absolutos das imagens
-- `data.yaml` para uso com Ultralytics
-
-## Treinar com Ultralytics (sem Darknet)
-
-Após gerar `data.yaml` com `prepare_dataset.py`, você pode treinar via CLI:
-```bash
-.venv\Scripts\activate
-yolo train data=data.yaml model=yolov8n.pt imgsz=640 epochs=50 batch=16
-```
-Ao final, os pesos ficam em `runs/detect/...`. Para inferência com Ultralytics:
-```bash
-yolo predict model=runs/detect/exp/weights/best.pt source=path/to/image_or_folder
-```
-
-## Tratamento de Erros e Testes
-
-Este projeto foca na configuração inicial para transfer learning. Para um ambiente de produção, é crucial implementar:
-
--   **Tratamento de Erros**: Adicionar blocos `try-except` em scripts Python para lidar com erros de arquivo, parsing JSON, etc.
--   **Testes Unitários**: Testar funções individuais, como `convert_bbox_to_yolo` no `prepare_dataset.py`.
--   **Testes de Integração**: Verificar se o pipeline completo de preparação do dataset funciona corretamente, desde a leitura do JSON até a geração dos arquivos `.txt` e `train.txt`/`val.txt`.
--   **Testes de Aceitação**: Validar se o modelo treinado é capaz de detectar objetos nas classes definidas com uma precisão aceitável em um conjunto de dados de teste independente.
-
-### Executar testes
-
-```bash
-.venv\Scripts\activate
-pytest -q
-```
-
-## Próximos Passos
-
--   Monitorar o treinamento e ajustar hiperparâmetros se necessário.
--   Avaliar o desempenho do modelo treinado usando métricas como mAP.
--   Realizar inferência com o modelo treinado em novas imagens/vídeos.
+## 📝 Notas
+- O projeto utiliza **caminhos relativos** para garantir portabilidade.
+- O detector prioriza classes como `car`, `truck`, `bus`, `motorbike` e `van`.
+- Pressione **'q'** para sair das janelas de visualização OpenCV.
