@@ -4,6 +4,7 @@ Este projeto demonstra a detecção de veículos utilizando YOLOv3-tiny com Open
 
 ## 🚀 Funcionalidades
 
+- **Demo Online**: A interface Gradio está hospedada e pronta para uso em [Hugging Face Spaces](https://huggingface.co/spaces/PedroM2626/YOLO-Detection-Transfer_Learning).
 - **Inferência Flexível**: Suporta carregamento de modelos customizados via `.env` ou download automático do YOLOv3-tiny (COCO) como fallback.
 - **Interface Streamlit**: Upload de imagens e detecção via webcam em uma interface web amigável.
 - **Detecção em Tempo Real**: Script otimizado para webcam com overlays informativos.
